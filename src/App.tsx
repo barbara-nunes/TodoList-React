@@ -4,6 +4,7 @@ import Footer from './components/Footer';
 import Header from './components/Header';
 import TaskForm from './components/TaskForm';
 import TaskList from './components/TaskList';
+import Modal from './components/Modal';
 
 import styles from './App.module.css';
 
@@ -13,24 +14,74 @@ import {ITask} from './interfaces/Task'
 function App() {
 
   const [ taskList, setTaskList] = useState<ITask[]>([]);
+  const [taskToUpdate, setTaskToUpdate] = useState<ITask | null>(null);
+
+  const deleteTask = (title: string): void => {
+    setTaskList(
+      taskList.filter((task) => {
+        return task.title !== title;
+      })
+    )
+  };
+
+  const hideOrShowModal = (display: boolean) => {
+    const modal = document.getElementById("modal");
+    if(display) {
+      modal!.classList.remove('hide');
+    } else {
+      modal!.classList.add('hide');
+    }
+  };
+
+  const editTask = (task: ITask): void => {
+    hideOrShowModal(true);
+    setTaskToUpdate(task)
+  }
+
+  const updatedTask = (id: number, title: string, difficulty: number) => {
+    const updatedTask: ITask = { id, title, difficulty };
+
+    const updatedItems = taskList.map((task) => {
+      return task.id === updatedTask.id ? updatedTask : task;
+    });
+
+    setTaskList(updatedItems);
+
+    hideOrShowModal(false);
+  }
 
   return (
     <div>
+      <Modal 
+        title="Editar tarefa"
+        children={
+          <TaskForm 
+            btnText='Editar' 
+            taskList={taskList}
+            task={taskToUpdate}
+            handleUpdate={updatedTask}
+          /> 
+        } 
+      />
       <Header />
 
       <main className={styles.main}>
-        <div>
+        <div className={styles.todo_form}>
           <h2>O que você vai fazer?</h2>
           <TaskForm 
-            btnText="Criar Tarefa" 
             taskList={taskList}
             setTaskList={setTaskList}
+            btnText="Cadastrar" 
           />
         </div>
 
-        <div>
+        <div className="todo-container">
           <h2>Suas tarefas:</h2>
-          <TaskList />
+          <TaskList 
+            taskList={taskList}
+            handleDelete={deleteTask}
+            handleEdit={editTask}
+          />
         </div>
       </main>
 
